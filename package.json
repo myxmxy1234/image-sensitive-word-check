@@ -1,0 +1,26 @@
+{
+  "name": "image-sensitive-word-check",
+  "version": "1.0.0",
+  "description": "A handy tool that can be used to scan images for sensitive content",
+  "main": "index.js",
+  "bin": {
+    "image-sensitive-word-check": "index.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/myxmxy1234/image-sensitive-word-check.git"
+  },
+  "author": "mayuxin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/myxmxy1234/image-sensitive-word-check/issues"
+  },
+  "homepage": "https://github.com/myxmxy1234/image-sensitive-word-check#readme",
+  "dependencies": {
+    "path-exists": "^4.0.0",
+    "tencentcloud-sdk-nodejs": "^4.0.551"
+  }
+}
