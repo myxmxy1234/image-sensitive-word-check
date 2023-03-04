@@ -4,6 +4,7 @@ const path = require('path')
 const fs = require('fs')
 const pathExist = require('path-exists').sync
 const tencentcloud = require("tencentcloud-sdk-nodejs")
+const sensitiveWords = require('./sensitiveWords.json')
 
 let targetPath
 let client
@@ -32,9 +33,13 @@ const initOcrClient = () => {
 }
 
 const checkPathExist = () => {
-  targetPath = path.normalize(process.argv[2])
-  if (!pathExist(targetPath)) {
-    throw new Error('未找到需要扫描的目录')
+  try {
+    targetPath = path.normalize(process.argv[2])
+    if (!pathExist(targetPath)) {
+      throw new Error('未找到需要扫描的目录')
+    }
+    fs.unlinkSync('./list.txt')
+  } catch (error) {
   }
 }
 
@@ -48,6 +53,7 @@ const scanDir = p => {
     if (isDir) {
       scanDir(currentPath)
     } else {
+      // 只扫描大于5kb的图片 注：根据实际情况配置
       if (isImg(currentPath) && fileStat.size > needScanImgSize) {
         imgInfoList.push({
           filePath: currentPath,
@@ -68,7 +74,7 @@ const loopScanImgList = (index = 0) => {
   }
 }
 
-const scanFileByOcr = ({ filePath, fileName }) => {
+const scanFileByOcr = ({ filePath }) => {
   const data = fs.readFileSync(path.join(filePath)).toString('base64').toString('base64')
   const base64 = /.png$/.test(filePath) ? `data:image/png;base64,${data}` : `data:image/jpg;base64,${data}`
   client.AdvertiseOCR({
@@ -88,16 +94,19 @@ const scanFileByOcr = ({ filePath, fileName }) => {
     if (err.code === 'FailedOperation.ImageNoText') {
     }
   })
-  num++;
 }
 
 const checkSensitiveWords = (contentList, filePath) => {
   if (Array.isArray(contentList)) {
     const str = contentList.map(e => e.DetectedText.toLowerCase()).join('')
-    if (str.indexOf('企微')) {
-      fs.writeFileSync('./list.txt', filePath + '\n\r', { flag: 'a' } )
-    } else {
-      console.log('没有敏感词');
+    let sensitiveStr = ''
+    sensitiveWords.forEach(word => {
+      if (str.includes(word)) {
+        sensitiveStr +=  `${ sensitiveStr ? '、' : ''}${word}` 
+      }
+    })
+    if (sensitiveStr) {
+      fs.writeFileSync('./list.txt', `${filePath} 识别出以下敏感词 ${sensitiveStr}\r`, { flag: 'a' } )
     }
   }
 }
